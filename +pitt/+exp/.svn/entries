@@ -1,0 +1,70 @@
+10
+
+dir
+1
+file:///synapse/labresources/schmidt_repo/+pitt/+exp
+file:///synapse/labresources/schmidt_repo
+
+
+
+2012-06-21T13:40:58.178894Z
+1
+schmidtb
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+c1997494-4d6b-4ad8-9c25-17b740d4a5a8
+
+@GCScales
+dir
+
+@GTesting
+dir
+
+PLVSim.m
+file
+0
+
+
+add
+
+@FParam
+dir
+
+@SimTesting
+dir
+
+Brain.m
+file
+0
+
+
+add
+
+@StationaryScales
+dir
+
++simu
+dir
+
++plv
+dir
+
+
+
+add
+
+@PinkGeneration
+dir
+

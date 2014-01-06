@@ -1,0 +1,52 @@
+classdef Analysis < handle
+   
+    methods( Static )
+        
+        
+        %{
+        
+        Calculate for each vertex, the number of non-zero connections
+        coming into that vertex. Additionally calculate the number of
+        non-zero connections going out of this node
+        
+        Inflow is number causing that vertex
+        Outflow is number that this vertex causes
+        
+        Columns cause rows
+        
+        Use thresholding on input to restrict gc values to those of
+        interested (eg significant only according to prb)
+        
+        %}
+        function [inflow, outflow] = flowAnalysisGC( gc )
+            
+            [rows, cols] = size( gc );
+            
+            % Initialize two empty output variables
+            inflow = zeros( rows,1 );
+            outflow = zeros( rows,1 );
+            
+            % We traverse columns first
+            for i = 1:cols
+                
+                for j = 1:rows
+                    
+                    % Skip self terms
+                    if( i == j ) continue; end;
+                    
+                    if( gc(j,i) > 0 )
+                        inflow( j )     = inflow( j ) + 1;
+                        outflow( i )    = outflow( i ) + 1;
+                    end
+                    
+                end
+            end
+            
+            
+        end
+        
+        
+        
+    end
+    
+end

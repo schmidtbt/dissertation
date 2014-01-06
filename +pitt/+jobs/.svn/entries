@@ -1,0 +1,77 @@
+10
+
+dir
+20
+file:///synapse/labresources/schmidt_repo/+pitt/+jobs
+file:///synapse/labresources/schmidt_repo
+
+
+
+2012-09-04T20:47:27.722894Z
+5
+schmidtb
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+c1997494-4d6b-4ad8-9c25-17b740d4a5a8
+
+GCJob.m
+file
+
+
+
+
+2012-06-01T19:27:05.000000Z
+618380b62578e0c47fcac320ddd7b86e
+2012-06-21T13:40:58.178894Z
+1
+schmidtb
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+918
+
+@JobRunner
+dir
+
+@JobManager
+dir
+
+@Scale
+dir
+
+@Job
+dir
+
+@Pipe
+dir
+

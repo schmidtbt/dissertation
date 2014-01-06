@@ -1,0 +1,76 @@
+10
+
+dir
+20
+file:///synapse/labresources/schmidt_repo/+pitt
+file:///synapse/labresources/schmidt_repo
+
+
+
+2012-09-14T14:16:03.180936Z
+9
+schmidtb
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+c1997494-4d6b-4ad8-9c25-17b740d4a5a8
+
+@Depend
+dir
+
++grid
+dir
+
++viz
+dir
+
++data
+dir
+
++exp
+dir
+
++signal
+dir
+
++jobs
+dir
+
+Simu.m
+file
+0
+
+
+add
+
+@Simu
+dir
+
++diss
+dir
+
+
+
+add
+
++kernels
+dir
+
++grtheory
+dir
+
+
+
+add
+

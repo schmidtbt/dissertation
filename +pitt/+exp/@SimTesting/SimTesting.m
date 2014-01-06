@@ -1,0 +1,375 @@
+classdef SimTesting < handle
+    
+    methods (Static)
+        
+        function [sigs] = simTwoSignals
+            pts = [0:.01:4];
+            signal1 = sin( 2*pi*pts ) + sin( .9*pi*pts ) + sin( .8*pi*pts ) + .6*randn( 1, length( pts ) );
+            signal2 = sin( 2*pi*pts + .25 ) + sin( .9*pi*pts + .30 ) + sin( .8*pi*pts + 2.5 ) + .6*randn( 1, length( pts ) );
+            sigs = [signal1; signal2];
+        end
+        
+        function [sigs] = simTwoSignals2
+            pts = [0:.01:4];
+            signal1 = sin( 2*pi*15*pts ) + sin( .9*pi*pts ) + sin( .8*pi*pts ) + sin( 2.3*pi*pts ) + sin( 3.6*pi*pts ) + sin( 0.4*pi*pts ) + .6*randn( 1, length( pts ) );
+            signal2 = sin( 2*pi*15*pts +0.1 )+ sin( .9*pi*pts + .30 ) + sin( .8*pi*pts + 2.5 ) + sin( 2.3*pi*pts +.2 ) + sin( 3.6*pi*pts + 1.1 ) + sin( 0.4*pi*pts +0.09 ) + .6*randn( 1, length( pts ) );
+            sigs = [signal1; signal2];
+        end
+        
+        function [ret, sigs] = testSimTwoSignals( NOREPORT )
+            
+            if( nargin ==0 )
+                NOREPORT = 0;
+            end
+            
+            sigs = pitt.exp.SimTesting.simTwoSignals;
+            ret = cca_granger_regress( sigs, 5 );
+            
+            if( ~NOREPORT )
+                pitt.exp.GTesting.gcreport( ret );
+            end
+            
+        end
+        
+        function [OneTwo, TwoOne, OneTwoGC, TwoOneGC, nruns] = testManySimTwoSignals( nruns )
+            
+            if( nargin == 0 )
+                nruns = 1000;
+            end
+            
+            OneTwo = 0;
+            TwoOne = 0;
+            OneTwoGC = [];
+            TwoOneGC = [];
+            
+            for i = 1:nruns
+                [ret, sigs] = pitt.exp.SimTesting.testSimTwoSignals;
+                
+                if( ret.prb(1,2) <.05 )
+                    TwoOne = TwoOne + 1;
+                    TwoOneGC = [TwoOneGC; ret.gc(1,2) ];
+                end
+                
+                if( ret.prb(2,1) <.05 )
+                    OneTwo = OneTwo + 1;
+                    OneTwoGC = [OneTwoGC; ret.gc(2,1) ];
+                end
+                
+                
+            end
+            
+            figure(1); hist( OneTwoGC, 100 );
+            title( 'One->Two GC Distribution' );
+            
+            figure(2); hist( TwoOneGC, 100 );
+            title( 'Two->One GC Distribution' );
+            
+            
+            
+            
+        end
+        
+        function [OneTwo, TwoOne, OneTwoGC, TwoOneGC, nruns] = testManySimTwoSignalsWithRand( nrunsSig, nrunsRand )
+            
+            if( nargin == 0 )
+                nrunsSig = 1000;
+                nrunsRand = 1000;
+            end
+            
+            OneTwo = 0;
+            TwoOne = 0;
+            OneTwoGC = [];
+            TwoOneGC = [];
+            
+            for i = 1:nrunsSig
+                [ret, sigs] = pitt.exp.SimTesting.testSimTwoSignals;
+                
+                if( ret.prb(1,2) <.05 )
+                    TwoOne = TwoOne + 1;
+                    TwoOneGC = [TwoOneGC; ret.gc(1,2) ];
+                end
+                
+                if( ret.prb(2,1) <.05 )
+                    OneTwo = OneTwo + 1;
+                    OneTwoGC = [OneTwoGC; ret.gc(2,1) ];
+                end
+                
+            end
+            
+            
+            figure(1); hist( OneTwoGC, 100 );
+            title( 'One->Two GC Distribution - Causal' );
+            
+            figure(2); hist( TwoOneGC, 100 );
+            title( 'Two->One GC Distribution - Causal' );
+            
+            
+            OneTwoR = 0;
+            TwoOneR = 0;
+            OneTwoGCR = [];
+            TwoOneGCR = [];
+            
+            for i = 1:nrunsRand
+                sigs = randn(2,1000);
+                ret = cca_granger_regress( sigs, 5 );
+                %[ret, sigs] = pitt.exp.SimTesting.testSimTwoSignals;
+                
+                if( ret.prb(1,2) <.05 )
+                    TwoOneR = TwoOne + 1;
+                    TwoOneGCR = [TwoOneGCR; ret.gc(1,2) ];
+                end
+                
+                if( ret.prb(2,1) <.05 )
+                    OneTwoR = OneTwo + 1;
+                    OneTwoGCR = [OneTwoGCR; ret.gc(2,1) ];
+                end
+                
+            end
+            
+            
+            
+            figure(3); hist( OneTwoGCR, 100 );
+            title( 'One->Two GC Distribution - Random' );
+            
+            figure(4); hist( TwoOneGCR, 100 );
+            title( 'Two->One GC Distribution - Random' );
+            
+            
+            
+            figure(5); hist( [OneTwoGC; OneTwoGCR], 100 );
+            title( 'One->Two GC Distribution - Both' );
+            
+            figure(6); hist( [TwoOneGC; TwoOneGCR], 100 );
+            title( 'Two->One GC Distribution - Both' );
+            
+            figure(7); hist( [OneTwoGC; TwoOneGC; OneTwoGCR; TwoOneGCR], 100 );
+            title('Combined directions and random + causal' );
+            
+        end
+        
+        function extractLabelData( sim, gc, prb )
+            
+            % Calculate all cross terms
+            %C2 = combnk( [sim.dipole_loc_label1, sim.dipole_loc_label2], 2 );
+            
+            l1 = sim.dipole_loc_label1;
+            l2 = sim.dipole_loc_label2;
+            
+            C = [];
+            for i = 1:length( l1 )
+                for j = 1:length( l2 )
+                        C = [C; [l1(i), l2(j)] ];
+                end
+            end
+            
+            for i = 1:length( l2 )
+                for j = 1:length( l1 )
+                        C = [C; [l2(i), l1(j)] ];
+                end
+            end
+            
+            
+            
+            % Convert for indexing
+            idx = sub2ind( size( gc ), C(:,1), C(:,2) );
+            
+            figure(44); 
+            hist( gc(idx), 100 );
+            [N4, X4] = hist( gc(idx), 100 );
+            title( 'GC values between and across labels' );
+            
+            figure(45); 
+            hist( prb(idx), 100 );
+            title( 'Prb values between and across labels' );
+            
+            lst = find( prb <= .05 );
+            figure(46);
+            hist( gc( lst ), 100 );
+            [N4s, X4s] = hist( gc( lst ), 100 );
+            title('Significant (at .05 level) GC values between and across labels' );
+            
+            
+            % Some random vertices
+            ridxs = randi( size( gc, 1 ), size( C, 1 ), 2 );
+            idx = sub2ind( size( gc ), ridxs(:,1), ridxs(:,2) );
+            [N7,X7] = hist( gc(idx), 100 );
+            
+            lst = find( gc(idx) > .05 );
+            [N7s, X7s] = hist( gc(lst), 100 );
+            
+            figure(62);
+            bar( X7s, N7s, 'r' );
+            hold on;
+            bar( X4s, N4s, 'g' );
+            hold off;
+            title('All signif label GC values (green) and Random lables (red)' );
+            
+            figure(55);
+            bar( X7, N7, 'r' );
+            hold on;
+            bar( X4, N4, 'g' );
+            hold off;
+            title('All label GC values (green) and Random lables (red)' );
+            
+            l1 = sim.dipole_loc_label1;
+            l2 = sim.dipole_loc_label2;
+            
+            C = [];
+            for i = 1:length( l1 )
+                for j = 1:length( l2 )
+                        C = [C; [l1(i), l2(j)] ];
+                end
+            end
+            
+            idx = sub2ind( size( gc ), C(:,1), C(:,2) );
+            figure( 47 );
+            hist( gc(idx), 100 );
+            [N1,X1] = hist( gc(idx), 100 );
+            title( 'GC values from label1 -> label2 ') ;
+            gc1 = gc(idx);
+            
+            lst = find( prb(idx) <= .05 );
+            figure(50);
+            hist( gc( lst ), 100 );
+            title('Significant (at .05 level) GC values from label1 -> label2' );
+            sgc1 = gc(lst);
+            
+            C = [];
+            for i = 1:length( l2 )
+                for j = 1:length( l1 )
+                        C = [C; [l2(i), l1(j)] ];
+                end
+            end
+            
+            idx = sub2ind( size( gc ), C(:,1), C(:,2) );
+            figure( 48 );
+            hist( gc(idx), 100 );
+            [N2,X2] = hist( gc(idx), 100 );
+            title( 'GC values from label2 -> label1 ') ;
+            gc2 = gc(idx);
+            
+            lst = find( prb(idx) <= .05 );
+            figure(49);
+            hist( gc( lst ), 100 );
+            title('Significant (at .05 level) GC values from label2 -> label1' );
+            sgc2 = gc(lst);
+            
+            fprintf( 'GC values 1->2 vs 2->1' );
+            ttest2( gc1, gc2 )
+            
+            fprintf( 'Sig Only GC values 1->2 vs 2->1' );
+            ttest2( sgc1, sgc2 )
+            
+            figure(52);
+            bar( X1, N1, 'r' );
+            hold on;
+            bar( X2, N2, 'g' );
+            hold off;
+            title('GC values from label1->label2 (red) and reverse (green)' )
+            
+            
+            
+        end
+        
+        
+        function analyzeOutputVariableBtwnLabels( sim, output )
+            prb = pitt.exp.GTesting.extractPrb( output );
+            gc = pitt.exp.GTesting.extractGc( output );
+            lst = find( prb <= .05 );
+            figure(310); hist( gc( lst ),100 )
+            size(output)
+            title( 'Significant (at .05) GC values between and across label regions' )
+            figure(311); hist( gc )
+            figure(311); hist( reshape( gc, size(gc,1)*size(gc,2), 1 ), 100 )
+            title( 'All GC values between and across labels' )
+            title( 'All GC values within and across labels' )
+            figure(312) ; hist( reshape( prb, size(gc,1)*size(gc,2), 1 ), 100 )
+            title('Histogram of All Prb values within and across labels' )
+            
+            OneTwoGC = gc(131:end,1:130);
+            TwoOneGC = gc(1:130,131:end);
+            figure(313) ; hist( reshape( OneTwoGC, size(OneTwoGC,1)*size(OneTwoGC,2), 1 ), 100 )
+            title('Label1 -> Label2 Histogram of GC values' )
+            figure(314) ; hist( reshape( TwoOneGC, size(TwoOneGC,1)*size(TwoOneGC,2), 1 ), 100 )
+            title('Label2 -> Label1 Histogram of GC values' )
+            TwoOnePRB = prb(1:130,131:end);
+            OneTwoPRB = prb(131:end,1:130);
+            lst = find( OneTwoPRB < .05 );
+            figure(315); hist( OneTwoGC( lst ),100 );
+            lst = find( TwoOnePRB < .05 );
+            figure(316); hist( TwoOneGC( lst ),100 );
+            title('Label2 -> Label1 Histogram of significant GC values' )
+            figure(315);
+            title('Label1 -> Label2 Histogram of significant GC values' )
+            length( find( prb <= .05 ) )
+            
+        end
+        
+        function analyzeOutputVariableRndData( sim, output )
+            prb = pitt.exp.GTesting.extractPrb( output );
+            gc = pitt.exp.GTesting.extractGc( output );
+            lst = find( prb <= .05 );
+            figure(310); hist( gc( lst ),100 )
+            size(output)
+            title( 'Significant (at .05) GC values of random vertices' )
+            figure(311); hist( gc )
+            figure(311); hist( reshape( gc, size(gc,1)*size(gc,2), 1 ), 100 )
+            title( 'All GC values of random vertices' )
+            title( 'All GC values of random vertices' )
+            figure(312) ; hist( reshape( prb, size(gc,1)*size(gc,2), 1 ), 100 )
+            title('Histogram of All Prb values of random vertices' )
+            
+        end
+        
+        function analyzeOutputVariableBtwenRandomAndLabels( sim, outputR, outputL )
+            
+            prbR = pitt.exp.GTesting.extractPrb( outputR );
+            gcR = pitt.exp.GTesting.extractGc( outputR );
+            prbL = pitt.exp.GTesting.extractPrb( outputL );
+            gcL = pitt.exp.GTesting.extractGc( outputL );
+            
+            lstR = find( prbR <= .05 );
+            lstL = find( prbL <= .05 );
+            
+            [XR, NR] = hist( gcR( lstR ), 100 );
+            [XL, NL] = hist( gcL( lstL ), 100 );
+            
+            figure( 432 );
+            bar( NR, XR, 'r' );
+            hold on;
+            bar( NL, XL, 'g' );
+            hold off;
+            title(' Overlay of random vertex data (red) and label data (green)' );
+        end
+        
+        % Given two 1-D arrays, find the number of values of needle occuring in
+        % haystack
+        % Returns the co-occuring values
+        function occur = findSimilarVertices( needle, haystack )
+            
+            occur = [];
+            
+            for i = 1:length(needle)
+               val = find( haystack == needle(i) );
+               if( length( val ) > 0 )
+                   occur = [occur; needle(i)];
+               end
+            end
+           
+        end
+        
+        function hist2D( twodarray, n )
+            if( nargin == 1 )
+                n = 100;
+            end
+           hist( reshape( twodarray, 1, size(twodarray,1)*size(twodarray,2) ), n );
+           ax = axis();
+           axis([0 1 ax(3) ax(4)]);
+        end
+        
+        
+        
+        
+    end    
+    
+end

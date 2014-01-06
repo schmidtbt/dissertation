@@ -1,0 +1,157 @@
+classdef Grapher < handle
+    %Example:
+    %pitt.viz.graph.Grapher.genDotFileWithPosLabels( 'filename.dot', randn(3,3), [0], floor([rand(3,2)*5]), Labels );
+    
+    methods (Static)
+        
+        %{
+        Outfilename is a string for the file to output to (usually with
+        .dot extension)
+        X is a numChannels x numChannels matrix with values corresponding
+        to weights for that pair
+        threshold is the minimum value at a i,j point in X to draw a line
+        %}
+        function genDotFile( Outfilename, X, threshold)
+            
+            fid = fopen( Outfilename, 'w' );
+            fprintf( fid, 'digraph g{\n' );
+            
+            
+            for i = 1:size(X,1)
+                for j = 1:size(X,2)
+                     if( i == j ); continue; end;
+                    if( X(i,j) > threshold )
+                        fprintf( fid, [num2str(i), '->',num2str(j),';\n'] );
+                    end
+                end
+            end
+            
+            
+            fprintf( fid, '}\n' );
+            fclose( fid );
+        end
+        
+        %{
+        Outfilename is a string for the file to output to (usually with
+        .dot extension)
+        X is a numChannels x numChannels matrix with values corresponding
+        to weights for that pair
+        threshold is the minimum value at a i,j point in X to draw a line
+        Pos is a numChannels x 2 matrix of [X,Y] pairs for each channel in
+        X
+        %}
+        function genDotFileWithPos(Outfilename, X, threshold, Pos)
+            
+            fid = fopen( Outfilename, 'w' );
+            fprintf( fid, 'digraph g{\n' );
+            
+            for i = 1:size(Pos,1)
+                fprintf( fid, [num2str(i), '[ pos= "',num2str(Pos(i,1)),',',num2str(Pos(i,2)),'!" ]\n']);
+            end
+            
+            
+            for i = 1:size(X,1)
+                for j = 1:size(X,2)
+                     if( i == j ); continue; end;
+                    if( X(i,j) > threshold )
+                        fprintf( fid, [num2str(i), '->',num2str(j),';\n'] );
+                    end
+                end
+            end
+            
+            
+            fprintf( fid, '}\n' );
+            fclose( fid );
+        end
+        
+        %{
+        Outfilename is a string for the file to output to (usually with
+        .dot extension)
+        X is a numChannels x numChannels matrix with values corresponding
+        to weights for that pair
+        threshold is the minimum value at a i,j point in X to draw a line
+        Pos is a numChannels x 2 matrix of [X,Y] pairs for each channel in
+        X
+        Labels is a cellarray of strings with label names
+        %}
+        function genDotFileWithPosLabels(Outfilename, X, threshold, Pos, Labels)
+            
+            fid = fopen( Outfilename, 'w' );
+            fprintf( fid, 'digraph g{\n' );
+            
+            for i = 1:size(Pos,1)
+                fprintf( fid, [Labels{i}, '[ pos= "',num2str(Pos(i,1)),',',num2str(Pos(i,2)),'!" ]\n']);
+            end
+            
+            
+            for i = 1:size(X,1)
+                for j = 1:size(X,2)
+                    
+                    if( i == j ); continue; end;
+                    if( X(i,j) > threshold )
+                        fprintf( fid, [Labels{i}, '->',Labels{j}] );
+                        fprintf( fid, ['[ color=', pitt.viz.graph.Grapher.colorSwatch(X(i,j)), ']']);
+                        fprintf( fid, ';\n' );
+                    end
+                end
+            end
+            
+            
+            fprintf( fid, '}\n' );
+            fclose( fid );
+        end
+        
+        %{
+        Outfilename is a string for the file to output to (usually with
+        .dot extension)
+        X is a numChannels x numChannels matrix with values corresponding
+        to weights for that pair
+        threshold is the minimum value at a i,j point in X to draw a line
+        Pos is a numChannels x 3 matrix of [X,Y,Z] values for each channel in
+        X
+        Labels is a cellarray of strings with label names
+        %}
+        function gen3DDotFileWithPosLabels(Outfilename, X, threshold, Pos,Labels)
+            
+            fid = fopen( Outfilename, 'w' );
+            fprintf( fid, 'digraph g{\n' );
+            
+            for i = 1:size(Pos,1)
+                fprintf( fid, [Labels{i}, '[ pos= "',num2str(Pos(i,1)), ',' ,num2str(Pos(i,2)), ',', num2str(Pos(i,3)),'!" ]\n']);
+            end
+            
+            for i = 1:size(X,1)
+                for j = 1:size(X,2)
+                     if( i == j ); continue; end;
+                    if( X(i,j) > threshold )
+                        fprintf( fid, [Labels{i}, '->',Labels{j}] );
+                        fprintf( fid, ['[ color=', pitt.viz.graph.Grapher.colorSwatch(X(i,j)), ']']);
+                        fprintf( fid, ';\n' );
+                    end
+                end
+            end
+            
+            
+            fprintf( fid, '}\n' );
+            fclose( fid );
+        end
+        
+        
+        function colorString = colorSwatch( value )
+            out = 'black';
+            if( value < .1 )
+                out = 'blue';
+            elseif( value <.2 )
+                out = 'green';
+            elseif( value <.8 )
+                out = 'orange';
+            else
+                out = 'red';
+            end
+            colorString = out;
+        end
+        
+    end
+    
+    
+end
